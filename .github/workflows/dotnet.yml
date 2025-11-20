@@ -19,16 +19,17 @@ jobs:
           dotnet-version: '9.0.x'
       
       - name: Restore dependencies
-        # Apuntamos directo al archivo, sin carpetas
-        run: dotnet restore Lab4-NadiaTorres.csproj
+        # CORRECCIÓN: Entramos a la carpeta y señalamos el archivo
+        run: dotnet restore Lab4-NadiaTorres/Lab4-NadiaTorres.csproj
 
       - name: Build application
-        # Apuntamos directo al archivo, sin carpetas
-        run: dotnet build Lab4-NadiaTorres.csproj --configuration Release
+        # CORRECCIÓN: Lo mismo aquí
+        run: dotnet build Lab4-NadiaTorres/Lab4-NadiaTorres.csproj --configuration Release
       
       - name: Publish application
-        run: dotnet publish Lab4-NadiaTorres.csproj --configuration Release --output ./published
+        # CORRECCIÓN: Y aquí. Esto evita el error del .sln y el error de "archivo no encontrado"
+        run: dotnet publish Lab4-NadiaTorres/Lab4-NadiaTorres.csproj --configuration Release --output ./published
 
       - name: Deploy to server (ejemplo de despliegue)
         run: |
-          echo "Listo para desplegar. Archivos generados en ./published"
+          echo "Compilación y publicación exitosas. Archivos en ./published"
