@@ -25,7 +25,7 @@ jobs:
         run: dotnet build --configuration Release
           
       - name: Publish application
-        run: dotnet publish Lab4-NadiaTorres/Lab4-NadiaTorres.csproj --configuration Release --output ./published
+        run: dotnet publish Lab4-NadiaTorres --configuration Release --output ./published
 
       - name: Deploy to server (ejemplo de despliegue)
         run: |
