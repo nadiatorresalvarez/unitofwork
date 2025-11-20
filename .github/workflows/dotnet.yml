@@ -3,7 +3,7 @@ name: Build and Deploy .NET Application
 on:
   push:
     branches:
-      - main # Autimaticamente se ejecuta cuando se sube cambios a la rama principal
+      - main
 
 jobs:
   build:
@@ -11,23 +11,25 @@ jobs:
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4 # Actualizado a v4 (recomendado)
 
       - name: Set up .NET
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v4 # Importante: Usar v4 para .NET 9
         with:
-          dotnet-version: '9.0'
-        
+          dotnet-version: '9.0.x'
+      
       - name: Restore dependencies
-        run: dotnet restore
-          
+        # Le decimos que busque en la carpeta Lab4-NadiaTorres
+        run: dotnet restore Lab4-NadiaTorres
+
       - name: Build application
-        run: dotnet build --configuration Release
-          
+        # Le decimos que construya lo que está en la carpeta Lab4-NadiaTorres
+        run: dotnet build Lab4-NadiaTorres --configuration Release
+      
       - name: Publish application
-        run: dotnet publish Lab4-NadiaTorres/Lab4-NadiaTorres.csproj --configuration Release --output ./published
+        run: dotnet publish Lab4-NadiaTorres/Lab4-NadiaTorres/Lab4-NadiaTorres.csproj --configuration Release --output ./published
 
       - name: Deploy to server (ejemplo de despliegue)
         run: |
-          scp -r ./published username@server:/path/to/deploy
-    
+          # scp -r ./published username@server:/path/to/deploy
+          echo "Listo para desplegar"
