@@ -8,18 +8,31 @@ using Microsoft.Extensions.Options;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
-// Agregar servicios de Swagger
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// --- CORRECCIÓN BASE DE DATOS INICIO ---
+// 1. Leemos la cadena local (appsettings.json) por defecto
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
+// 2. Buscamos la variable de entorno de Render (RENDER_DB)
+var renderDB = Environment.GetEnvironmentVariable("RENDER_DB");
+
+// 3. Si existe la variable de Render, SOBRESCRIBIMOS la conexión
+if (!string.IsNullOrEmpty(renderDB))
+{
+    connectionString = renderDB;
+}
+
+// 4. Usamos la cadena elegida (ya sea local o nube)
 builder.Services.AddDbContext<dbContextLab4>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(connectionString));
+// --- CORRECCIÓN BASE DE DATOS FIN ---
 
-//injection
+
+// Inyecciones de dependencias
 builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
 builder.Services.AddScoped<IProductoRepository, ProductoRepository>();
 builder.Services.AddScoped<ICategoriaRepository, CategoriaRepository>();
@@ -29,15 +42,13 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 var app = builder.Build();
 
+// Crear base de datos si no existe (para Render)
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     try
     {
-        // Aquí ponemos tu clase exacta: dbContextLab4
         var context = services.GetRequiredService<dbContextLab4>();
-        
-        // Este comando crea las tablas (Productos, etc.) en Render automáticamente
         context.Database.EnsureCreated(); 
     }
     catch (Exception ex)
@@ -47,16 +58,17 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+// --- CORRECCIÓN SWAGGER INICIO ---
+// Hemos sacado Swagger del "if (app.Environment.IsDevelopment())"
+// para que puedas verlo en Render (que corre en Production).
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
-        c.RoutePrefix = string.Empty; // Swagger en la raiz del proyecto (opcional)
-    });
-}
+    // Ajuste para que funcione tanto en local como en nube
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
+    c.RoutePrefix = string.Empty; // Swagger en la raiz
+});
+// --- CORRECCIÓN SWAGGER FIN ---
 
 app.UseHttpsRedirection();
 app.MapControllers();
