@@ -29,6 +29,24 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        // Aquí ponemos tu clase exacta: dbContextLab4
+        var context = services.GetRequiredService<dbContextLab4>();
+        
+        // Este comando crea las tablas (Productos, etc.) en Render automáticamente
+        context.Database.EnsureCreated(); 
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Ocurrió un error al crear la base de datos.");
+    }
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
